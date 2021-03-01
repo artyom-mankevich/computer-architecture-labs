@@ -2,9 +2,9 @@
 
 /* Изменяйте только эти 4 переменные */
 constexpr int V0 = 0;
-constexpr int V1 = -1;
+constexpr int V1 = 7;
 constexpr int V2 = 0;
-constexpr int V3 = 0;
+constexpr int V3 = -1;
 
 /*
  * Точка входа с++ программы. Что передается через аргументы?
