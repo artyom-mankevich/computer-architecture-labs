@@ -1,9 +1,9 @@
-1.
-2.
-3.
-4.
-5.
-6.
-7.
-8.
-9.
+1. set args <аргументы>
+2. breakpoint имя_файла:номер_строки (вместо breakpoint можно писать b)
+3. next
+4. step
+5. continue
+6. print имя_переменной
+7. display имя_переменной
+8. info locals
+9. quit
