@@ -222,7 +222,18 @@ TEST_SUITE("Decoder"){
         }
     }
 
-    /* YOUR CODE HERE */
+    TEST_CASE("MySW"){
+        SUBCASE("SW"){
+            // imm[11:5] rs2 rs1 010 imm[4:0] 0100011
+            // 0001110 01010 10101 010 00111 0100011
+            // imm = 0001110 00111
+            auto instruction = _decoder.Decode(0b00011100101010101010001110100011);
+            CHECK(instruction->_imm.value() == 0b000111000111);
+            CHECK(instruction->_src2.value() == 0b01010);
+            CHECK(instruction->_src1.value() == 0b10101);
+            CHECK(instruction->_type == IType::St);
+        }
+    }
 }
 
 void testBranch(InstructionPtr &instruction){

@@ -236,7 +236,19 @@ TEST_SUITE("Executor"){
 
         }
     }
-    /* YOUR CODE HERE */
+    TEST_CASE("MyTest"){
+        SUBCASE("SW"){
+            // 0001110 01010 10101 010 00111 0100011
+            auto instruction = _decoder.Decode(0b00011100101010101010001110100011);
+            instruction->_src1Val = SRCVAL1;
+            instruction->_src2Val = SRCVAL2;
+            _exe.Execute(instruction, IP);
+
+            CHECK_EQ(instruction->_data, SRCVAL2);
+            CHECK_EQ(instruction->_addr, SRCVAL1 + IMM_S);
+            CHECK_EQ(instruction->_nextIp, IP + 4);
+        }
+    }
 }
 
 void testAlu(InstructionPtr &instruction, Executor &exe){
