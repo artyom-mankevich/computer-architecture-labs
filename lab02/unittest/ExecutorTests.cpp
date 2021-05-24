@@ -245,8 +245,9 @@ TEST_SUITE("Executor"){
             _exe.Execute(instruction, IP);
 
             CHECK_EQ(instruction->_data, SRCVAL2);
-            CHECK_EQ(instruction->_addr, SRCVAL1 + IMM_S);
+            CHECK_EQ(instruction->_addr, SRCVAL1 + 0b000111000111);
             CHECK_EQ(instruction->_nextIp, IP + 4);
+
         }
     }
 }
