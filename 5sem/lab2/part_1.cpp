@@ -4,34 +4,28 @@
 #include <vector>
 #include <algorithm>
 #include <ctime>
+#include <atomic>
+#include <functional>
 
-typedef std::chrono::high_resolution_clock Clock;
-
-void threads_init(std::vector<int> &arr, const int &threads_count);
-
-void do_w_mtx(std::vector<int> &arr);
-
-void print_if_all_equal(std::vector<int> &arr);
-
-void print_vector(std::vector<int> &arr);
-
-void mtx_starter();
+#include "part1.h"
 
 std::mutex mtx;
-int counter = 0;
+int mutex_counter = 0;
 const int array_size = 1024 * 1024;
 bool sleep = false;
+std::atomic<int> atomic_counter;
+bool do_w_mutex = true;
 
 int main(int argc, char *argv[]) {
-    srand(time(0));
+    srand(time(nullptr));
 
     if (argc == 2 && *argv[1] == 's') {
         sleep = true;
     }
     if (sleep) {
-        std::cout << "\nWith sleeping for 10 ns after increment: "<< std::endl;
+        std::cout << "\nWith sleeping for 10 ns after increment: " << std::endl;
     } else {
-        std::cout << "\nWithout sleeping: "<< std::endl;
+        std::cout << "\nWithout sleeping: " << std::endl;
     }
 
     int *arr = new int[array_size]{0};
@@ -43,60 +37,53 @@ int main(int argc, char *argv[]) {
         }
     }
     auto clock_end = Clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::microseconds>(clock_end - clock_start).count();
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(clock_end - clock_start).count();
     std::cout << "One thread time: " << time << std::endl;
+    delete[] arr;
 
-    mtx_starter();
+    std::cout << "\nMUTEX:\n";
+    starter(4);
+    starter(8);
+    starter(16);
+    starter(32);
+
+    std::cout << "\nATOMIC:\n";
+    do_w_mutex = false;
+    starter(4);
+    starter(8);
+    starter(16);
+    starter(32);
     return 0;
 }
 
-void print_vector(std::vector<int> &arr) {
+void print_arr(int *arr) {
     for (int i = 0; i < array_size; ++i) {
         std::cout << arr[i];
     }
 }
 
-void mtx_starter() {
-    std::vector<int> elements0(array_size, 0);
-    std::cout << "\n4 Threads\n";
-    threads_init(elements0, 4);
+void starter(const int &threads_count) {
+    if (do_w_mutex) {
+        mutex_counter = 0;
+    } else {
+        atomic_counter = 0;
+    }
+    int *arr = new int[array_size]{0};
+    std::cout << std::endl << threads_count << " Threads\n";
+    init_threads(arr, threads_count, calculate);
     int rand_idx = rand() % array_size;
-    std::cout << "Element № " << rand_idx << ": " << elements0[rand_idx] << std::endl;
-    print_if_all_equal(elements0);
-    counter = 0;
-
-    std::vector<int> elements1(array_size, 0);
-    std::cout << "\n8 Threads\n";
-    threads_init(elements1, 8);
-    rand_idx = rand() % array_size;
-    std::cout << "Element № " << rand_idx << ": " << elements0[rand_idx] << std::endl;
-    print_if_all_equal(elements0);
-    counter = 0;
-
-    std::vector<int> elements2(array_size, 0);
-    std::cout << "\n16 Threads\n";
-    threads_init(elements2, 16);
-    rand_idx = rand() % array_size;
-    std::cout << "Element № " << rand_idx << ": " << elements0[rand_idx] << std::endl;
-    print_if_all_equal(elements0);
-    counter = 0;
-
-
-    std::vector<int> elements3(array_size, 0);
-    std::cout << "\n32 Threads\n";
-    threads_init(elements3, 32);
-    rand_idx = rand() % array_size;
-    std::cout << "Element № " << rand_idx << ": " << elements0[rand_idx] << std::endl;
-    print_if_all_equal(elements0);
-    counter = 0;
+    std::cout << "Element № " << rand_idx << ": " << arr[rand_idx] << std::endl;
+    print_if_all_equal(arr);
+    delete[] arr;
 }
 
-void threads_init(std::vector<int> &arr, const int &threads_count) {
+template<typename Function>
+void init_threads(int *arr, const int &threads_count, Function func) {
     std::vector<std::thread> threads;
 
     auto clock_start = Clock::now();
     for (auto i = 0; i < threads_count; ++i) {
-        std::thread thread(do_w_mtx, std::ref(arr));
+        std::thread thread(func, std::ref(arr));
         threads.emplace_back(std::move(thread));
     }
 
@@ -104,35 +91,58 @@ void threads_init(std::vector<int> &arr, const int &threads_count) {
         threads[i].join();
     }
     auto clock_end = Clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::microseconds>(clock_end - clock_start).count();
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(clock_end - clock_start).count();
     std::cout << "Function time: " << time << "\n";
 }
 
-void do_w_mtx(std::vector<int> &arr) {
+void calculate(int *arr) {
     auto clock_start = Clock::now();
-    while (counter < array_size) {
-        mtx.lock();
-        arr[counter] += 1;
-        counter++;
-        mtx.unlock();
-        if (sleep) {
-            std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+    if (do_w_mutex) {
+        while (true) {
+            mtx.lock();
+            if (mutex_counter >= array_size) {
+                mtx.unlock();
+                break;
+            }
+            arr[mutex_counter]++;
+            mutex_counter++;
+            mtx.unlock();
+            if (sleep) {
+                std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+            }
+        }
+    } else {
+        int tmp_counter;
+        while (true) {
+            tmp_counter = atomic_counter.fetch_add(1, std::memory_order_seq_cst);
+            if (tmp_counter >= array_size) {
+                break;
+            } else {
+                arr[tmp_counter]++;
+            }
+            if (sleep) {
+                std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+            }
         }
     }
     auto clock_end = Clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::microseconds>(clock_end - clock_start).count();
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(clock_end - clock_start).count();
     mtx.lock();
     std::cout << "\tThread ID: " << std::this_thread::get_id() << "; time: " << time << std::endl;
     mtx.unlock();
 }
 
-void print_if_all_equal(std::vector<int> &arr) {
-    bool first_check = std::adjacent_find(arr.begin(), arr.end(),
-                                          std::not_equal_to<>()) == arr.end();
-    bool second_check = std::equal(arr.begin() + 1, arr.end(), arr.begin());
+void print_if_all_equal(const int *arr) {
+    bool check = true;
+    for (int i = 0; i < array_size; ++i) {
+        if (arr[i] != 1) {
+            check = false;
+            break;
+        }
+    }
 
-    if (first_check && second_check) {
-        std::cout << "All elements are equal" << std::endl;
+    if (check) {
+        std::cout << "All elements are equal to 1" << std::endl;
     } else {
         std::cout << "ERROR" << std::endl;
     }
