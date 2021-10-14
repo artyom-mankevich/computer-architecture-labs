@@ -102,10 +102,14 @@ int main() {
     std::cout << "Producers count: " << producer_count << std::endl;
     std::cout << "Consumers count: " << consumer_count << std::endl;
 
+    std::cout << "Part 1. Queue with unlimited size:" << std::endl;
     auto queue = ThreadSafeQueue();
     start_threads(queue);
+
+    std::cout << "Part 2. Queue with fixed size:" << std::endl;
     auto fixed_queue = FixedSizeQueue(16);
     start_threads(fixed_queue);
+
     return 0;
 }
 

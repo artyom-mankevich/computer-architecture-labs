@@ -1,0 +1,24 @@
+Producers count: 2
+Consumers count: 3
+Part 1. Queue with unlimited size:
+	Producer ID: 140246633580096; time: 4346
+	Producer ID: 140246625187392; time: 4404
+	Consumer ID: 140246600009280; time: 4407
+	Consumer ID: 140246616794688; time: 4408
+	Consumer ID: 140246608401984; time: 4408
+Function time: 4408 milliseconds
+
+Global counter: 8388608
+Tasks * producers: 8388608
+Equal
+Part 2. Queue with fixed size:
+	Producer ID: 140246625187392; time: 11577
+	Producer ID: 140246633580096; time: 11741
+	Consumer ID: 140246616794688; time: 11751
+	Consumer ID: 140246600009280; time: 11751
+	Consumer ID: 140246608401984; time: 11751
+Function time: 11752 milliseconds
+
+Global counter: 8388608
+Tasks * producers: 8388608
+Equal
