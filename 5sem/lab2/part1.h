@@ -8,13 +8,13 @@
 typedef std::chrono::high_resolution_clock Clock;
 
 template<typename Function>
-void init_threads(int *arr, const int &threads_count, Function func);
+void init_threads(std::vector<int> &arr, const int &threads_count, Function func);
 
-void calculate(int *arr);
+void calculate(std::vector<int> &arr);
 
-void print_if_all_equal(const int *arr);
+void print_if_all_equal(std::vector<int> &arr);
 
-void print_arr(int *arr);
+void print_arr(std::vector<int> &arr);
 
 void starter(const int &threads_count);
 

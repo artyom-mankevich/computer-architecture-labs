@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
         std::cout << "\nWithout sleeping: " << std::endl;
     }
 
-    int *arr = new int[array_size]{0};
+    std::vector<int> arr(array_size);
     auto clock_start = Clock::now();
     for (int i = 0; i < array_size; ++i) {
         arr[i]++;
@@ -39,7 +39,6 @@ int main(int argc, char *argv[]) {
     auto clock_end = Clock::now();
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(clock_end - clock_start).count();
     std::cout << "One thread time: " << time << std::endl;
-    delete[] arr;
 
     std::cout << "\nMUTEX:\n";
     starter(4);
@@ -56,7 +55,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void print_arr(int *arr) {
+void print_arr(std::vector<int> &arr) {
     for (int i = 0; i < array_size; ++i) {
         std::cout << arr[i];
     }
@@ -68,17 +67,16 @@ void starter(const int &threads_count) {
     } else {
         atomic_counter = 0;
     }
-    int *arr = new int[array_size]{0};
+    std::vector<int> arr(array_size);
     std::cout << std::endl << threads_count << " Threads\n";
     init_threads(arr, threads_count, calculate);
     int rand_idx = rand() % array_size;
     std::cout << "Element № " << rand_idx << ": " << arr[rand_idx] << std::endl;
     print_if_all_equal(arr);
-    delete[] arr;
 }
 
 template<typename Function>
-void init_threads(int *arr, const int &threads_count, Function func) {
+void init_threads(std::vector<int> &arr, const int &threads_count, Function func) {
     std::vector<std::thread> threads;
 
     auto clock_start = Clock::now();
@@ -95,7 +93,7 @@ void init_threads(int *arr, const int &threads_count, Function func) {
     std::cout << "Function time: " << time << "\n";
 }
 
-void calculate(int *arr) {
+void calculate(std::vector<int> &arr) {
     auto clock_start = Clock::now();
     if (do_w_mutex) {
         while (true) {
@@ -132,7 +130,7 @@ void calculate(int *arr) {
     mtx.unlock();
 }
 
-void print_if_all_equal(const int *arr) {
+void print_if_all_equal(std::vector<int> &arr) {
     bool check = true;
     for (int i = 0; i < array_size; ++i) {
         if (arr[i] != 1) {
