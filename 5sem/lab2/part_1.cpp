@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     std::vector<int> arr(array_size);
     auto clock_start = Clock::now();
     for (int i = 0; i < array_size; ++i) {
-        arr[i]++;
+        arr.at(i)++;
         if (sleep) {
             std::this_thread::sleep_for(std::chrono::nanoseconds(10));
         }
@@ -102,7 +102,7 @@ void calculate(std::vector<int> &arr) {
                 mtx.unlock();
                 break;
             }
-            arr[mutex_counter]++;
+            arr.at(mutex_counter)++;
             mutex_counter++;
             mtx.unlock();
             if (sleep) {
