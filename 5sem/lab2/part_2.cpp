@@ -14,6 +14,7 @@ int consumer_count = 4;
 int producer_count = 4;
 std::atomic<int> global_counter{0};
 std::condition_variable queue_conditional;
+std::atomic<bool> producers_working{false};
 
 class Queue {
 public:
@@ -123,19 +124,22 @@ void start_threads(Queue &queue) {
         std::thread p_thread(producer, std::ref(queue));
         producer_threads.emplace_back(std::move(p_thread));
     }
+    producers_working = true;
 
     for (int i = 0; i < consumer_count; ++i) {
         std::thread c_thread(consumer, std::ref(queue));
         consumer_threads.emplace_back(std::move(c_thread));
     }
 
+    for (int i = 0; i < producer_count; ++i) {
+        producer_threads[i].join();
+    }
+    producers_working = false;
+
     for (int i = 0; i < consumer_count; ++i) {
         consumer_threads[i].join();
     }
 
-    for (int i = 0; i < producer_count; ++i) {
-        producer_threads[i].join();
-    }
     auto clock_end = Clock::now();
 
     auto func_time = std::chrono::duration_cast<std::chrono::milliseconds>(clock_end - clock_start).count();
@@ -148,10 +152,10 @@ void consumer(Queue &queue) {
     auto clock_start = Clock::now();
     int counter = 0;
     uint8_t val;
-    while (true) {
-        if (queue.pop(val)) {
+    while (producers_working) {
+        while (queue.pop(val)) {
             counter += val;
-        } else break;
+        }
     }
     global_counter.fetch_add(counter, std::memory_order_seq_cst);
     auto clock_end = Clock::now();
